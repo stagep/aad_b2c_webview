@@ -1,6 +1,7 @@
 import 'package:aad_b2c_webview/src/src.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class AADLoginButton extends StatefulWidget {
   final String userFlowUrl;
@@ -21,6 +22,7 @@ class AADLoginButton extends StatefulWidget {
   final String responseType;
   final List<OptionalParam>? optionalParameters;
   final Widget? loadingReplacement;
+  final bool checkInternetIsAvailable;
 
   const AADLoginButton({
     super.key,
@@ -41,6 +43,7 @@ class AADLoginButton extends StatefulWidget {
     this.style,
     this.optionalParameters,
     this.loadingReplacement,
+    this.checkInternetIsAvailable = false,
   })  : assert(userFlowUrl != ''),
         assert(userFlowName != ''),
         assert(clientId != ''),
@@ -54,38 +57,48 @@ class _AADLoginButtonState extends State<AADLoginButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(widget.context ?? context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              return ADB2CEmbedWebView(
-                responseType: widget.responseType,
-                tenantBaseUrl: widget.userFlowUrl,
-                userFlowName: widget.userFlowName,
-                clientId: widget.clientId,
-                redirectUrl: widget.redirectUrl,
-                onRedirect: widget.onRedirect,
-                onAnyTokenRetrieved: (value) {
-                  if (widget.onAnyTokenRetrieved != null) {
-                    widget.onAnyTokenRetrieved!(value);
-                  }
-                },
-                onAccessToken: (accessToken) {
-                  widget.onAccessToken(accessToken);
-                },
-                onIDToken: (idToken) {
-                  widget.onIDToken(idToken);
-                },
-                onRefreshToken: (refreshToken) {
-                  widget.onRefreshToken(refreshToken);
-                },
-                scopes: widget.scopes,
-                optionalParameters: widget.optionalParameters ?? [],
-                loadingReplacement: widget.loadingReplacement,
-              );
-            },
-          ),
-        );
+      onTap: () async {
+        if (await _isInternetAccessible()) {
+          Navigator.of(widget.context ?? context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return ADB2CEmbedWebView(
+                  responseType: widget.responseType,
+                  tenantBaseUrl: widget.userFlowUrl,
+                  userFlowName: widget.userFlowName,
+                  clientId: widget.clientId,
+                  redirectUrl: widget.redirectUrl,
+                  onRedirect: widget.onRedirect,
+                  onAnyTokenRetrieved: (value) {
+                    if (widget.onAnyTokenRetrieved != null) {
+                      widget.onAnyTokenRetrieved!(value);
+                    }
+                  },
+                  onAccessToken: (accessToken) {
+                    widget.onAccessToken(accessToken);
+                  },
+                  onIDToken: (idToken) {
+                    widget.onIDToken(idToken);
+                  },
+                  onRefreshToken: (refreshToken) {
+                    widget.onRefreshToken(refreshToken);
+                  },
+                  scopes: widget.scopes,
+                  optionalParameters: widget.optionalParameters ?? [],
+                  loadingReplacement: widget.loadingReplacement,
+                );
+              },
+            ),
+          );
+        } else {
+          if (!widget.context!.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login requires a working internet connection.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       },
       child: Material(
         elevation: 4.0,
@@ -134,5 +147,18 @@ class _AADLoginButtonState extends State<AADLoginButton> {
         ),
       ),
     );
+  }
+
+  Future<bool> _isInternetAccessible() async {
+    try {
+      final response = await http.get(Uri.parse('https://www.google.com'));
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 }
