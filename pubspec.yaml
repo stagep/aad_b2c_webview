@@ -11,9 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   webview_flutter: ^4.2.2
-  webview_flutter_android: ^3.9.3
+  webview_flutter_android: ^4.3.3
   webview_flutter_wkwebview: ^3.7.3
-  google_fonts: ^5.0.0
+  google_fonts: ^6.2.1
   pkce: ^1.1.0+1
   mockito: ^5.3.2
   http: ^1.2.1
@@ -21,7 +21,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

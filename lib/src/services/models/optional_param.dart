@@ -1,5 +1,6 @@
 /// Class represents an optional parameter for the Azure AD B2C user flow.
 /// for sending optional parameters in a link.
+library;
 
 class OptionalParam {
   /// The name of the optional parameter.
